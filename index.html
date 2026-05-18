@@ -230,7 +230,7 @@ function renderCards(cards){
           <span class="chip ${cls}">${lbl}</span>
         </div>
         ${fileHtml}
-        <div class="card-date">📅 ${new Date(c.data_envio).toLocaleDateString('pt-BR')}</div>
+        <div class="card-date">📅 ${new Date(new Date(c.data_envio).getTime() - 3*60*60*1000).toLocaleDateString('pt-BR')}</div>
       `;
       el.appendChild(d);
     });
@@ -266,7 +266,7 @@ async function openCard(id){
       <div class="info-cell"><div class="info-l">Celular</div><div class="info-v">${esc(c.celular||'—')}</div></div>
       <div class="info-cell"><div class="info-l">Cargo</div><div class="info-v">${esc(c.cargo||'—')}</div></div>
       <div class="info-cell full"><div class="info-l">Resumo enviado</div>${arquivoAutor}</div>
-      <div class="info-cell full"><div class="info-l">Data de envio</div><div class="info-v">${new Date(c.data_envio).toLocaleString('pt-BR')}</div></div>
+      <div class="info-cell full"><div class="info-l">Data de envio</div><div class="info-v">${new Date(new Date(c.data_envio).getTime() - 3*60*60*1000).toLocaleString('pt-BR')}</div></div>
     </div>`;
 
   let acoes = '';
