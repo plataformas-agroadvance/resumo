@@ -80,6 +80,8 @@ html,body{height:100%;background:#fff}
 .anexo-preview.show{display:flex}
 .ap-name{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ap-remove{cursor:pointer;font-size:14px;color:#9A3412}
+.btn-delete{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:9px;background:#FEE2E2;border:1.5px solid #EF4444;color:#B91C1C;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;width:100%;margin-top:8px}
+.btn-delete:hover{background:#EF4444;color:#fff}
 .btn-iniciar{display:block;width:100%;padding:11px;border-radius:9px;background:#0D3365;border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:.15s;margin-bottom:14px}
 .btn-iniciar:hover{background:#1255A0}
 .action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -322,7 +324,8 @@ async function openCard(id){
       <div class="section-lbl">Comentários do revisor</div>
       <textarea class="textarea" id="ta" placeholder="Anotações...">${esc(c.comentario||'')}</textarea>
       <hr class="divider">
-      <button class="btn-iniciar" onclick="moverWip()">🔍 Iniciar revisão deste resumo</button>`;
+      <button class="btn-iniciar" onclick="moverWip()">🔍 Iniciar revisão deste resumo</button>
+      <button class="btn-delete" onclick="excluirCard()">🗑️ Excluir este resumo</button>`;
   } else if(c.status === 'wip'){
     acoes = `
       <hr class="divider">
@@ -344,7 +347,8 @@ async function openCard(id){
       <div class="action-row">
         <button class="btn-ok" onclick="finalizar('ok')">✓ Aprovar e enviar e-mail</button>
         <button class="btn-corr" onclick="finalizar('corr')">↩ Solicitar correção e enviar e-mail</button>
-      </div>`;
+      </div>
+      <button class="btn-delete" onclick="excluirCard()">🗑️ Excluir este resumo</button>`;
   } else {
     const isOk = c.status==='ok';
     const anexoFeedback = c.revisor_arquivo
@@ -359,7 +363,8 @@ async function openCard(id){
       <div style="margin-top:12px;padding:11px 14px;background:${isOk?'#D1FAE5':'#FFEDD5'};border:1.5px solid ${isOk?'#059669':'#EA580C'};border-radius:9px;font-size:11px;color:${isOk?'#065F46':'#9A3412'};display:flex;align-items:center;gap:10px">
         <span style="font-size:18px">${isOk?'✉️':'📋'}</span>
         <span>${isOk?'E-mail de aprovação enviado.':'E-mail de correção enviado.'}<br><strong>Para: ${esc(c.email)}</strong></span>
-      </div>`;
+      </div>
+      <button class="btn-delete" onclick="excluirCard()">🗑️ Excluir este resumo</button>`;
   }
 
   document.getElementById('modal-body').innerHTML = `<div style="margin-bottom:14px"><span class="status-chip ${cls}">${lbl}</span></div>${dadosLead}${acoes}`;
@@ -465,6 +470,16 @@ async function saveNew(){
   if(error){ showToast('Erro','Não foi possível inserir: '+error.message,true); return; }
   closeModal(); loadCards();
   showToast('✅ Resumo adicionado',`"${nome}" está em A Fazer`,false);
+}
+
+// ─── EXCLUIR CARD ────────────────────────────────────────────────────────────
+async function excluirCard(){
+  if(!confirm('Tem certeza que deseja excluir este resumo? Esta ação não pode ser desfeita.')) return;
+  const { error } = await sb.from('submissions').delete().eq('id', editId);
+  if(error){ showToast('Erro','Não foi possível excluir',true); return; }
+  closeModal();
+  loadCards();
+  showToast('🗑️ Resumo excluído','Card removido com sucesso',false);
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
