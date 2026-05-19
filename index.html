@@ -47,7 +47,13 @@ html,body{height:100%;background:#fff}
 .sub-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .sub-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .sub-ok .sub-hdr{background:#065F46}.sub-ok .sub-dot{background:#34D399}.sub-ok .sub-name{color:#A7F3D0}
-.sub-corr .sub-hdr{background:#7C2D12}.sub-corr .sub-dot{background:#FB923C}.sub-corr .sub-name{color:#FED7AA}
+.sub-corr .sub-hdr{background:#7C2D12}
+.sub-rep .sub-hdr{background:#450A0A}
+.sub-rep .sub-dot{background:#EF4444}
+.sub-rep .sub-name{color:#FECACA}
+.btn-rep{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px;border-radius:9px;background:#FEE2E2;border:1.5px solid #EF4444;color:#B91C1C;font-size:12px;font-weight:700;cursor:pointer;transition:.15s}
+.btn-rep:hover{background:#EF4444;color:#fff}
+.chip-rep{background:#FEE2E2;color:#B91C1C}.sub-corr .sub-dot{background:#FB923C}.sub-corr .sub-name{color:#FED7AA}
 .sub-body{background:#EBF1F8;border:1px solid #C8D8EE;border-radius:8px;padding:9px 8px;display:flex;flex-direction:column;gap:8px;min-height:44px}
 .add-btn{display:flex;align-items:center;justify-content:center;gap:5px;padding:9px;background:transparent;border:1.5px dashed #B0C8E0;border-radius:8px;color:#7A9ABB;font-size:11px;cursor:pointer;width:100%;margin-top:10px;transition:.15s}
 .add-btn:hover{background:#EEF4FB;border-color:#0D3365;color:#0D3365}
@@ -187,6 +193,10 @@ html,body{height:100%;background:#fff}
         <div class="sub-hdr"><div class="sub-dot"></div><span class="sub-name">↩ Correção</span></div>
         <div class="sub-body" id="col-corr"><div class="empty" style="padding:8px 0;font-size:10px">Nenhuma correção ainda</div></div>
       </div>
+      <div class="subcol sub-rep" style="margin-top:14px">
+        <div class="sub-hdr"><div class="sub-dot"></div><span class="sub-name">✕ Reprovado</span></div>
+        <div class="sub-body" id="col-rep"><div class="empty" style="padding:8px 0;font-size:10px">Nenhum reprovado</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -250,15 +260,16 @@ function setupRealtime(){
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
 function renderCards(cards){
-  const cols = { todo:[], wip:[], ok:[], corr:[] };
+  const cols = { todo:[], wip:[], ok:[], corr:[], rep:[] };
   cards.forEach(c => { if(cols[c.status]) cols[c.status].push(c); });
 
-  const chipMap = { todo:['Novo','chip-new'], wip:['Em revisão','chip-rev'], ok:['Aprovado','chip-ok'], corr:['Correção','chip-corr'] };
+  const chipMap = { todo:['Novo','chip-new'], wip:['Em revisão','chip-rev'], ok:['Aprovado','chip-ok'], corr:['Correção','chip-corr'], rep:['Reprovado','chip-rep'] };
   const emptyMsg = {
     todo:'<div class="empty-icon">📥</div>Aguardando resumos<br>recebidos pelo FluentForms',
     wip:'<div class="empty-icon">🔍</div>Nenhum em revisão',
     ok:'Nenhum aprovado ainda',
-    corr:'Nenhuma correção ainda'
+    corr:'Nenhuma correção ainda',
+    rep:'Nenhum reprovado'
   };
 
   Object.keys(cols).forEach(k => {
@@ -286,7 +297,7 @@ function renderCards(cards){
 
   document.getElementById('cnt-todo').textContent = cols.todo.length;
   document.getElementById('cnt-wip').textContent  = cols.wip.length;
-  document.getElementById('cnt-done').textContent = cols.ok.length + cols.corr.length;
+  document.getElementById('cnt-done').textContent = cols.ok.length + cols.corr.length + cols.rep.length;
   const t = Object.values(cols).flat().length;
   document.getElementById('badge-total').textContent = t + (t===1?' resumo':' resumos');
 }
@@ -299,7 +310,7 @@ async function openCard(id){
   const c = data;
   document.getElementById('modal-ttl').textContent = c.nome;
 
-  const sMap = { todo:['chip-new','A Fazer'], wip:['chip-rev','Em Revisão'], ok:['chip-ok','Aprovado'], corr:['chip-corr','Correção Solicitada'] };
+  const sMap = { todo:['chip-new','A Fazer'], wip:['chip-rev','Em Revisão'], ok:['chip-ok','Aprovado'], corr:['chip-corr','Correção Solicitada'], rep:['chip-rep','Reprovado'] };
   const [cls,lbl] = sMap[c.status];
 
   const arquivoAutor = c.arquivo_url
@@ -348,9 +359,11 @@ async function openCard(id){
         <button class="btn-ok" onclick="finalizar('ok')">✓ Aprovar e enviar e-mail</button>
         <button class="btn-corr" onclick="finalizar('corr')">↩ Solicitar correção e enviar e-mail</button>
       </div>
+      <button class="btn-rep" style="width:100%;margin-top:8px" onclick="finalizar('rep')">✕ Reprovar e enviar e-mail</button>
       <button class="btn-delete" onclick="excluirCard()">🗑️ Excluir este resumo</button>`;
   } else {
-    const isOk = c.status==='ok';
+    const isOk  = c.status==='ok';
+    const isRep = c.status==='rep';
     const anexoFeedback = c.revisor_arquivo
       ? `<div style="margin-top:8px;display:flex;align-items:center;gap:8px;font-size:11px;color:#065F46;background:#D1FAE5;border-radius:7px;padding:8px 10px"><span>📎</span><span style="font-weight:600">${esc(c.revisor_arquivo)}</span></div>` : '';
     acoes = `
@@ -360,9 +373,9 @@ async function openCard(id){
         ${c.comentario ? esc(c.comentario) : '<span style="color:#8AA8C8;font-style:italic">Sem comentários.</span>'}
       </div>
       ${anexoFeedback}
-      <div style="margin-top:12px;padding:11px 14px;background:${isOk?'#D1FAE5':'#FFEDD5'};border:1.5px solid ${isOk?'#059669':'#EA580C'};border-radius:9px;font-size:11px;color:${isOk?'#065F46':'#9A3412'};display:flex;align-items:center;gap:10px">
-        <span style="font-size:18px">${isOk?'✉️':'📋'}</span>
-        <span>${isOk?'E-mail de aprovação enviado.':'E-mail de correção enviado.'}<br><strong>Para: ${esc(c.email)}</strong></span>
+      <div style="margin-top:12px;padding:11px 14px;background:${isOk?'#D1FAE5':isRep?'#FEE2E2':'#FFEDD5'};border:1.5px solid ${isOk?'#059669':isRep?'#EF4444':'#EA580C'};border-radius:9px;font-size:11px;color:${isOk?'#065F46':isRep?'#B91C1C':'#9A3412'};display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">${isOk?'✉️':isRep?'🚫':'📋'}</span>
+        <span>${isOk?'E-mail de aprovação enviado.':isRep?'E-mail de reprovação enviado.':'E-mail de correção enviado.'}<br><strong>Para: ${esc(c.email)}</strong></span>
       </div>
       <button class="btn-delete" onclick="excluirCard()">🗑️ Excluir este resumo</button>`;
   }
@@ -445,6 +458,8 @@ async function finalizar(tipo){
 
   if(tipo==='ok'){
     showToast('✉️ E-mail de aprovação enviado!', `Para: ${card.email}`, false);
+  } else if(tipo==='rep'){
+    showToast('🚫 E-mail de reprovação enviado!', `Para: ${card.email}`, true);
   } else {
     showToast(
       '📋 E-mail de correção enviado!' + (revisor_arquivo_url?' (com anexo)':''),
@@ -629,7 +644,7 @@ document.addEventListener('click', e => {
 
 // ─── DRAG AND DROP ───────────────────────────────────────────────────────────
 const dropZones = ['col-todo','col-wip','col-ok','col-corr'];
-const statusMap  = {'col-todo':'todo','col-wip':'wip','col-ok':'ok','col-corr':'corr'};
+const statusMap  = {'col-todo':'todo','col-wip':'wip','col-ok':'ok','col-corr':'corr','col-rep':'rep'};
 
 document.addEventListener('dragstart', e => {
   const card = e.target.closest('.card');
