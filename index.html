@@ -385,12 +385,41 @@ async function moverWip(){
 async function finalizar(tipo){
   const ta = document.getElementById('ta');
   const comentario = ta ? ta.value : '';
-  const revisor_arquivo = reviewerFile ? reviewerFile.name : null;
 
   const { data: card } = await sb.from('submissions').select('*').eq('id', editId).single();
 
+  // Upload do arquivo do revisor para Supabase Storage
+  let revisor_arquivo_url = null;
+  let revisor_arquivo_nome = null;
+
+  if(reviewerFile){
+    showToast('⏳ Enviando arquivo...', 'Aguarde o upload do feedback', false);
+    const ext = reviewerFile.name.split('.').pop();
+    const fileName = `feedback_${editId}_${Date.now()}.${ext}`;
+
+    const { data: uploadData, error: uploadError } = await sb.storage
+      .from('feedbacks')
+      .upload(fileName, reviewerFile, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: reviewerFile.type
+      });
+
+    if(uploadError){
+      console.error('Erro upload:', uploadError);
+      showToast('⚠️ Aviso','Não foi possível fazer upload do arquivo. Prosseguindo sem anexo.',true);
+    } else {
+      const { data: urlData } = sb.storage.from('feedbacks').getPublicUrl(fileName);
+      revisor_arquivo_url  = urlData.publicUrl;
+      revisor_arquivo_nome = reviewerFile.name;
+    }
+  }
+
   const { error } = await sb.from('submissions').update({
-    status: tipo, comentario, revisor_arquivo, atualizado_em: new Date().toISOString()
+    status: tipo,
+    comentario,
+    revisor_arquivo: revisor_arquivo_nome,
+    atualizado_em: new Date().toISOString()
   }).eq('id', editId);
 
   if(error){ showToast('Erro','Não foi possível finalizar',true); return; }
@@ -401,15 +430,28 @@ async function finalizar(tipo){
   fetch(N8N_EMAIL_WEBHOOK, {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      tipo, nome: card.nome, email: card.email,
-      celular: card.celular||'', cargo: card.cargo||'',
-      arquivo_nome: card.arquivo_nome||'', comentario,
-      revisor_arquivo: revisor_arquivo||''
+      tipo,
+      nome:               card.nome,
+      email:              card.email,
+      celular:            card.celular            || '',
+      cargo:              card.cargo              || '',
+      arquivo_nome:       card.arquivo_nome       || '',
+      arquivo_url:        card.arquivo_url        || '',
+      comentario,
+      revisor_arquivo_nome: revisor_arquivo_nome  || '',
+      revisor_arquivo_url:  revisor_arquivo_url   || ''
     })
   }).catch(err => console.error('Erro webhook n8n:', err));
 
-  if(tipo==='ok') showToast('✉️ E-mail de aprovação enviado!',`Para: ${card.email}`,false);
-  else showToast('📋 E-mail de correção enviado!'+(revisor_arquivo?' (com anexo)':''),`Para: ${card.email}`,true);
+  if(tipo==='ok'){
+    showToast('✉️ E-mail de aprovação enviado!', `Para: ${card.email}`, false);
+  } else {
+    showToast(
+      '📋 E-mail de correção enviado!' + (revisor_arquivo_url?' (com anexo)':''),
+      `Para: ${card.email}`,
+      true
+    );
+  }
 }
 
 // ─── UPLOAD REVISOR ───────────────────────────────────────────────────────────
