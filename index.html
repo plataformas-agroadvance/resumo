@@ -280,9 +280,7 @@ function renderCards(cards){
       const [lbl,cls] = chipMap[c.status];
       const d = document.createElement('div');
       d.className='card'; d.draggable=true; d.dataset.id=c.id; d.onclick=()=>openCard(c.id);
-      const fileHtml = c.arquivo_url
-        ? `<div class="card-file" onclick="event.stopPropagation();window.open('${esc(c.arquivo_url)}','_blank')">📄 ${esc(c.arquivo_nome||'resumo')} ↗</div>`
-        : `<div class="card-file no-url">📄 ${esc(c.arquivo_nome||'resumo')}</div>`;
+      const fileHtml = `<div class="card-file no-url">📄 ${esc(c.arquivo_nome||'resumo')}</div>`;
       d.innerHTML=`
         <div class="card-head">
           <div><div class="card-name">${esc(c.nome)}</div><div class="card-inst">${esc(c.cargo||'—')}</div></div>
