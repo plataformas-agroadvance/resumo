@@ -126,6 +126,12 @@ html,body{height:100%;background:#fff}
 .toast-content .toast-title{font-weight:700;color:#0D3365;font-size:12px}
 .toast-content .toast-sub{color:#5A7A9A;font-size:11px;margin-top:2px}
 .empty{text-align:center;padding:18px 8px;color:#8AA8C8;font-size:11px;line-height:1.6}
+.loading{text-align:center;padding:20px 8px;color:#8AA8C8;font-size:11px}
+.search-wrap{position:relative}
+.search-input{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 16px;font-size:12px;color:#fff;width:240px;outline:none;font-family:inherit;transition:.2s}
+.search-input::placeholder{color:rgba(255,255,255,.5)}
+.search-input:focus{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.5);width:280px}
+.search-input::-webkit-search-cancel-button{cursor:pointer}
 .card{cursor:grab}.card:active{cursor:grabbing;opacity:.7;transform:scale(.98)}
 .col-body.drag-over,.sub-body.drag-over{background:#E0EBFA;border-color:#0D3365;border-style:dashed}
 .empty-icon{font-size:22px;margin-bottom:5px;opacity:.45}
@@ -236,8 +242,20 @@ let reviewerFile = null;
 function esc(s){ const d=document.createElement('div');d.textContent=String(s||'');return d.innerHTML; }
 
 // ─── CARREGAR CARDS DO SUPABASE ───────────────────────────────────────────────
+let searchQuery = '';
+
 async function loadCards(){
-  const { data, error } = await sb.from('submissions').select('*').order('data_envio', { ascending: false });
+  const colIds = ['col-todo','col-wip','col-ok','col-corr','col-rep'];
+  colIds.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = '<div class="loading">⏳ Carregando...</div>';
+  });
+
+  let query = sb.from('submissions').select('*').order('data_envio', { ascending: false }).limit(200);
+  if(searchQuery){
+    query = query.or(`nome.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,cargo.ilike.%${searchQuery}%`);
+  }
+  const { data, error } = await query;
   if(error){ console.error(error); showToast('Erro ao carregar dados','Verifique a conexão com Supabase',true); return; }
   renderCards(data || []);
 }
@@ -297,7 +315,8 @@ function renderCards(cards){
   document.getElementById('cnt-wip').textContent  = cols.wip.length;
   document.getElementById('cnt-done').textContent = cols.ok.length + cols.corr.length + cols.rep.length;
   const t = Object.values(cols).flat().length;
-  document.getElementById('badge-total').textContent = t + (t===1?' resumo':' resumos');
+  const pendentes = cols.todo.length + cols.wip.length;
+  document.getElementById('badge-total').textContent = t + (t===1?' resumo':' resumos') + (pendentes > 0 ? ` • ${pendentes} pendente${pendentes>1?'s':''}` : '');
 }
 
 // ─── ABRIR CARD ───────────────────────────────────────────────────────────────
@@ -332,6 +351,7 @@ async function openCard(id){
       <hr class="divider">
       <div class="section-lbl">Comentários do revisor</div>
       <textarea class="textarea" id="ta" placeholder="Anotações...">${esc(c.comentario||'')}</textarea>
+      <button style="width:100%;padding:8px;border-radius:8px;background:#F4F7FB;border:1.5px solid #C8D8EE;color:#5A7A9A;font-size:11px;font-weight:600;cursor:pointer;margin-bottom:14px;transition:.15s" onmouseover="this.style.background='#EEF4FB'" onmouseout="this.style.background='#F4F7FB'" onclick="salvarComentario()">💾 Salvar comentário</button>
       <hr class="divider">
       <button class="btn-iniciar" onclick="moverWip()">🔍 Iniciar revisão deste resumo</button>
       <button class="btn-delete" onclick="excluirCard()">🗑️ Excluir este resumo</button>`;
@@ -351,6 +371,7 @@ async function openCard(id){
         <span>📎</span><span class="ap-name" id="ap-name"></span>
         <span class="ap-remove" onclick="removeAnexo(event)">✕</span>
       </div>
+      <button style="width:100%;padding:8px;border-radius:8px;background:#F4F7FB;border:1.5px solid #C8D8EE;color:#5A7A9A;font-size:11px;font-weight:600;cursor:pointer;margin-bottom:14px;transition:.15s" onmouseover="this.style.background='#EEF4FB'" onmouseout="this.style.background='#F4F7FB'" onclick="salvarComentario()">💾 Salvar comentário</button>
       <hr class="divider">
       <div class="section-lbl">Finalizar — dispara e-mail automático</div>
       <div class="action-row">
@@ -470,7 +491,14 @@ async function finalizar(tipo){
 // ─── UPLOAD REVISOR ───────────────────────────────────────────────────────────
 function onFileSelected(input){
   if(!input.files||!input.files[0]) return;
-  reviewerFile = input.files[0];
+  const file = input.files[0];
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if(file.size > maxSize){
+    showToast('⚠️ Arquivo muito grande', `Tamanho máximo: 10MB. Seu arquivo tem ${(file.size/1024/1024).toFixed(1)}MB`, true);
+    input.value='';
+    return;
+  }
+  reviewerFile = file;
   document.getElementById('ap-name').textContent = reviewerFile.name;
   document.getElementById('anexo-preview').classList.add('show');
   document.getElementById('anexo-box').style.borderColor='#059669';
@@ -535,6 +563,24 @@ async function excluirCard(){
   closeModal();
   loadCards();
   showToast('🗑️ Resumo excluído','Card removido com sucesso',false);
+}
+
+// ─── SALVAR COMENTÁRIO ───────────────────────────────────────────────────────
+async function salvarComentario(){
+  const ta = document.getElementById('ta');
+  if(!ta) return;
+  const comentario = ta.value;
+  const { error } = await sb.from('submissions').update({ comentario, atualizado_em: new Date().toISOString() }).eq('id', editId);
+  if(error){ showToast('Erro','Não foi possível salvar',true); return; }
+  showToast('💾 Comentário salvo','Anotação registrada com sucesso',false);
+}
+
+// ─── BUSCA ────────────────────────────────────────────────────────────────────
+let searchTimer = null;
+function onSearch(val){
+  clearTimeout(searchTimer);
+  searchQuery = val.trim();
+  searchTimer = setTimeout(() => loadCards(), 400);
 }
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -675,6 +721,15 @@ document.addEventListener('drop', async e => {
   const colId = zone.id;
   const newStatus = statusMap[colId];
   if(!newStatus) return;
+
+  // Confirmar antes de mover para status final (dispara e-mail)
+  if(['ok','corr','rep'].includes(newStatus)){
+    const labels = { ok:'Pronto (envia e-mail de aprovação)', corr:'Correção (envia e-mail de correção)', rep:'Reprovado (envia e-mail de reprovação)' };
+    if(!confirm(`Mover para "${labels[newStatus]}"?
+
+Atenção: isso irá disparar um e-mail automático para o autor.`)) return;
+  }
+
   const { error } = await sb.from('submissions').update({ status: newStatus, atualizado_em: new Date().toISOString() }).eq('id', cardId);
   if(error){ showToast('Erro','Não foi possível mover o card',true); return; }
   loadCards();
