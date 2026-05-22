@@ -127,6 +127,45 @@ html,body{height:100%;background:#fff}
 .toast-content .toast-sub{color:#5A7A9A;font-size:11px;margin-top:2px}
 .empty{text-align:center;padding:18px 8px;color:#8AA8C8;font-size:11px;line-height:1.6}
 .loading{text-align:center;padding:20px 8px;color:#8AA8C8;font-size:11px}
+
+/* REVISORES */
+.reviewer-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0}
+.reviewer-initials{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.15);flex-shrink:0;background:#0D3365}
+.card-reviewer{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:10px;color:#5A7A9A}
+
+/* SETTINGS PANEL */
+.settings-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 14px;font-size:16px;cursor:pointer;color:#fff;transition:.15s}
+.settings-btn:hover{background:rgba(255,255,255,.2)}
+.settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.settings-overlay.open{display:flex}
+.settings-modal{background:#fff;border-radius:14px;width:480px;max-width:96vw;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.settings-head{background:#0D3365;padding:17px 22px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between}
+.settings-head-title{color:#fff;font-size:14px;font-weight:700}
+.settings-close{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:6px;color:#fff;font-size:16px;padding:2px 10px;cursor:pointer}
+.settings-body{padding:20px 22px}
+.reviewer-card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#F4F7FB;border:1.5px solid #C8D8EE;border-radius:10px;margin-bottom:10px}
+.reviewer-card-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #C8D8EE;flex-shrink:0}
+.reviewer-card-initials{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;background:#0D3365;flex-shrink:0}
+.reviewer-card-info{flex:1}
+.reviewer-card-name{font-size:13px;font-weight:700;color:#0D3365}
+.reviewer-card-role{font-size:11px;color:#5A7A9A;margin-top:2px}
+.reviewer-card-actions{display:flex;gap:6px}
+.btn-edit-rev{background:#EEF4FB;border:1px solid #C8D8EE;border-radius:6px;padding:4px 10px;font-size:11px;color:#0D3365;cursor:pointer}
+.btn-del-rev{background:#FEE2E2;border:1px solid #EF4444;border-radius:6px;padding:4px 10px;font-size:11px;color:#B91C1C;cursor:pointer}
+.add-reviewer-form{background:#F4F7FB;border:1.5px dashed #C8D8EE;border-radius:10px;padding:16px;margin-top:6px}
+.add-reviewer-form-title{font-size:12px;font-weight:700;color:#0D3365;margin-bottom:12px}
+.avatar-preview-wrap{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.avatar-preview{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #C8D8EE;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;background:#0D3365;flex-shrink:0}
+.avatar-upload-btn{font-size:11px;padding:6px 12px;border-radius:7px;background:#0D3365;color:#fff;border:none;cursor:pointer}
+
+/* ATRIBUIR REVISOR NO MODAL */
+.reviewer-select-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.rev-option{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:1.5px solid #C8D8EE;background:#F4F7FB;cursor:pointer;font-size:12px;color:#0D3365;transition:.15s}
+.rev-option:hover{border-color:#0D3365;background:#EEF4FB}
+.rev-option.selected{border-color:#0D3365;background:#0D3365;color:#fff}
+.rev-option.selected .rev-opt-initials{background:rgba(255,255,255,.25);color:#fff}
+.rev-opt-initials{width:22px;height:22px;border-radius:50%;background:#0D3365;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.rev-opt-img{width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .search-wrap{position:relative}
 .search-input{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:5px 16px;font-size:12px;color:#fff;width:240px;outline:none;font-family:inherit;transition:.2s}
 .search-input::placeholder{color:rgba(255,255,255,.5)}
@@ -149,6 +188,7 @@ html,body{height:100%;background:#fff}
     <div class="topbar-title">Sistema de Revisão de Resumos — Simpósio 2026</div>
   </div>
   <div class="topbar-right">
+    <button class="settings-btn" onclick="openSettings()" title="Configurações">⚙️</button>
     <div style="position:relative">
       <button class="notif-btn" onclick="toggleNotifPanel()" title="Notificações">
         🔔
@@ -207,6 +247,19 @@ html,body{height:100%;background:#fff}
   </div>
 </div>
 </div>
+
+<!-- SETTINGS MODAL -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettingsBg(event)">
+  <div class="settings-modal">
+    <div class="settings-head">
+      <span class="settings-head-title">⚙️ Configurações — Revisores</span>
+      <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-body" id="settings-body"></div>
+  </div>
+</div>
+
+<input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="onAvatarSelected(this)">
 
 <div class="overlay" id="overlay" onclick="closeBg(event)">
   <div class="modal">
@@ -353,6 +406,9 @@ async function openCard(id){
       <textarea class="textarea" id="ta" placeholder="Anotações...">${esc(c.comentario||'')}</textarea>
       <button style="width:100%;padding:8px;border-radius:8px;background:#F4F7FB;border:1.5px solid #C8D8EE;color:#5A7A9A;font-size:11px;font-weight:600;cursor:pointer;margin-bottom:14px;transition:.15s" onmouseover="this.style.background='#EEF4FB'" onmouseout="this.style.background='#F4F7FB'" onclick="salvarComentario()">💾 Salvar comentário</button>
       <hr class="divider">
+      <div class="section-lbl">Atribuir revisor</div>
+      <div class="reviewer-select-row" id="rev-select-row">${buildReviewerOptions(c.revisor_id)}</div>
+      <hr class="divider">
       <button class="btn-iniciar" onclick="moverWip()">🔍 Iniciar revisão deste resumo</button>
       <button class="btn-delete" onclick="excluirCard()">🗑️ Excluir este resumo</button>`;
   } else if(c.status === 'wip'){
@@ -372,6 +428,9 @@ async function openCard(id){
         <span class="ap-remove" onclick="removeAnexo(event)">✕</span>
       </div>
       <button style="width:100%;padding:8px;border-radius:8px;background:#F4F7FB;border:1.5px solid #C8D8EE;color:#5A7A9A;font-size:11px;font-weight:600;cursor:pointer;margin-bottom:14px;transition:.15s" onmouseover="this.style.background='#EEF4FB'" onmouseout="this.style.background='#F4F7FB'" onclick="salvarComentario()">💾 Salvar comentário</button>
+      <hr class="divider">
+      <div class="section-lbl">Atribuir revisor</div>
+      <div class="reviewer-select-row" id="rev-select-row">${buildReviewerOptions(c.revisor_id)}</div>
       <hr class="divider">
       <div class="section-lbl">Finalizar — dispara e-mail automático</div>
       <div class="action-row">
@@ -735,6 +794,145 @@ Atenção: isso irá disparar um e-mail automático para o autor.`)) return;
   loadCards();
   showToast('✓ Card movido', 'Status atualizado para ' + newStatus, false);
 });
+
+// ─── REVISORES ───────────────────────────────────────────────────────────────
+let reviewers = JSON.parse(localStorage.getItem('kanban_reviewers') || '[]');
+let editingReviewer = null;
+let avatarBase64 = null;
+
+function saveReviewers(){ localStorage.setItem('kanban_reviewers', JSON.stringify(reviewers)); }
+
+function buildReviewerOptions(selectedId){
+  if(!reviewers.length) return '<div style="font-size:11px;color:#8AA8C8">Nenhum revisor cadastrado. Configure em ⚙️</div>';
+  return reviewers.map(r => {
+    const sel = r.id === selectedId;
+    const avatarHtml = r.avatar
+      ? `<img class="rev-opt-img" src="${esc(r.avatar)}">`
+      : `<div class="rev-opt-initials">${r.nome.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}</div>`;
+    return `<div class="rev-option${sel?' selected':''}" onclick="selectReviewer('${r.id}',this)">${avatarHtml}<span>${esc(r.nome)}</span></div>`;
+  }).join('');
+}
+
+async function selectReviewer(revId, el){
+  // Toggle selection
+  const rows = document.querySelectorAll('.rev-option');
+  const alreadySelected = el.classList.contains('selected');
+  rows.forEach(r => r.classList.remove('selected'));
+  const newRevId = alreadySelected ? null : revId;
+  if(!alreadySelected) el.classList.add('selected');
+
+  const { error } = await sb.from('submissions').update({ revisor_id: newRevId, atualizado_em: new Date().toISOString() }).eq('id', editId);
+  if(error){ showToast('Erro','Não foi possível atribuir revisor',true); return; }
+  loadCards();
+  const rev = reviewers.find(r => r.id === revId);
+  if(!alreadySelected && rev) showToast('👤 Revisor atribuído', `${rev.nome} atribuído a este card`, false);
+  else showToast('👤 Revisor removido', 'Atribuição removida', false);
+}
+
+// SETTINGS
+function openSettings(){
+  renderSettingsBody();
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings(){ document.getElementById('settings-overlay').classList.remove('open'); editingReviewer=null; avatarBase64=null; }
+function closeSettingsBg(e){ if(e.target===document.getElementById('settings-overlay')) closeSettings(); }
+
+function renderSettingsBody(){
+  const list = reviewers.map((r,i) => {
+    const avatarHtml = r.avatar
+      ? `<img class="reviewer-card-avatar" src="${esc(r.avatar)}">`
+      : `<div class="reviewer-card-initials">${r.nome.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}</div>`;
+    return `
+      <div class="reviewer-card">
+        ${avatarHtml}
+        <div class="reviewer-card-info">
+          <div class="reviewer-card-name">${esc(r.nome)}</div>
+          <div class="reviewer-card-role">${esc(r.role||'Revisor')}</div>
+        </div>
+        <div class="reviewer-card-actions">
+          <button class="btn-edit-rev" onclick="editReviewer('${r.id}')">✏️</button>
+          <button class="btn-del-rev" onclick="deleteReviewer('${r.id}')">🗑️</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('settings-body').innerHTML = `
+    <div style="font-size:12px;color:#5A7A9A;margin-bottom:16px">Cadastre os revisores que podem ser atribuídos aos cards do Kanban.</div>
+    ${list}
+    <div class="add-reviewer-form" id="add-reviewer-form">
+      <div class="add-reviewer-form-title" id="form-title">➕ Adicionar novo revisor</div>
+      <div class="avatar-preview-wrap">
+        <div class="avatar-preview" id="avatar-preview">?</div>
+        <div>
+          <button class="avatar-upload-btn" onclick="document.getElementById('avatar-input').click()">📷 Escolher foto</button>
+          <div style="font-size:10px;color:#9AABB8;margin-top:4px">JPG, PNG — máx 2MB</div>
+        </div>
+      </div>
+      <input id="rev-nome" class="field" placeholder="Nome completo *" style="margin-bottom:8px">
+      <input id="rev-role" class="field" placeholder="Cargo/função (ex: Revisor, Professor)" style="margin-bottom:12px">
+      <button class="btn-ok" style="width:100%;padding:11px" onclick="saveReviewer()">✓ Salvar revisor</button>
+    </div>
+  `;
+}
+
+function onAvatarSelected(input){
+  if(!input.files||!input.files[0]) return;
+  const file = input.files[0];
+  if(file.size > 2*1024*1024){ showToast('⚠️ Imagem muito grande','Máximo 2MB',true); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    avatarBase64 = e.target.result;
+    const preview = document.getElementById('avatar-preview');
+    if(preview){
+      preview.innerHTML = `<img src="${avatarBase64}" style="width:52px;height:52px;border-radius:50%;object-fit:cover">`;
+    }
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+
+function editReviewer(id){
+  const r = reviewers.find(x => x.id===id);
+  if(!r) return;
+  editingReviewer = id;
+  avatarBase64 = r.avatar || null;
+  document.getElementById('form-title').textContent = '✏️ Editar revisor';
+  document.getElementById('rev-nome').value = r.nome;
+  document.getElementById('rev-role').value = r.role||'';
+  const preview = document.getElementById('avatar-preview');
+  if(r.avatar) preview.innerHTML = `<img src="${r.avatar}" style="width:52px;height:52px;border-radius:50%;object-fit:cover">`;
+  else preview.textContent = r.nome.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('add-reviewer-form').scrollIntoView({behavior:'smooth'});
+}
+
+function saveReviewer(){
+  const nome = document.getElementById('rev-nome').value.trim();
+  if(!nome){ alert('Nome é obrigatório.'); return; }
+  const role = document.getElementById('rev-role').value.trim();
+
+  if(editingReviewer){
+    const idx = reviewers.findIndex(r => r.id===editingReviewer);
+    if(idx>=0){ reviewers[idx] = { ...reviewers[idx], nome, role, avatar: avatarBase64||reviewers[idx].avatar||null }; }
+    editingReviewer = null;
+  } else {
+    if(reviewers.length >= 10){ showToast('⚠️ Limite atingido','Máximo de 10 revisores',true); return; }
+    reviewers.push({ id: Math.random().toString(36).slice(2), nome, role, avatar: avatarBase64||null });
+  }
+
+  avatarBase64 = null;
+  saveReviewers();
+  renderSettingsBody();
+  showToast('✅ Revisor salvo', nome + ' cadastrado com sucesso', false);
+}
+
+function deleteReviewer(id){
+  const r = reviewers.find(x => x.id===id);
+  if(!confirm(`Remover "${r?.nome}"?`)) return;
+  reviewers = reviewers.filter(x => x.id!==id);
+  saveReviewers();
+  renderSettingsBody();
+  loadCards();
+}
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 loadCards();
